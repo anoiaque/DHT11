@@ -44,7 +44,7 @@ int humidityAndTemperature(int bits[], int *temp, int *humidity){
   uint8_t checksum = ((data[0] + data[1] + data[2] + data[3]) & 0xFF);
 
   if (checksum != data[4]) return CHECKSUM_ERROR;
-Serial.println("Here");
+
   *humidity = data[0];
   *temp = data[2];
 
