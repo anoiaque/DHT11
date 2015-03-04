@@ -2,35 +2,53 @@
 #define TIMEOUT 1000
 #define TIMEOUT_ERROR -1
 #define CHECKSUM_ERROR -2
-#define BIT_1_SIGNAL_DURATION_MIN 40
+#define BIT_1_SIGNAL_DURATION_MIN 40 /*micro seconds*/
+#define REFRESH_DELAY 1800000 /*Half an hour*/
+#define DEBUG 0
+
+int temperature;
+int humidity;
+char *error;
 
 void setup(){
-  Serial.begin(9600);
-  while(!Serial.available()) SPARK_WLAN_Loop();
+  Spark.variable("DHT11-RH", &humidity, INT);
+  Spark.variable("DHT11-TEMP", &temperature, INT);
+  Spark.variable("DHT11-ERROR", error, STRING);
+
+  if (DEBUG){
+    Serial.begin(9600);
+    while(!Serial.available()) SPARK_WLAN_Loop();
+  }
 }
 
 void loop(){
   int bits[39];
-  int temperature;
-  int humidity;
 
   if (readBytes(bits) == TIMEOUT_ERROR){
-    Serial.println("Timeout");
+    error = "Timeout";
   }
   else{
     if (humidityAndTemperature(bits, &temperature, &humidity) == CHECKSUM_ERROR){
-      Serial.println("Checksum error");
+      error = "Checksum error";
     }
     else{
-      Serial.print("Humidity:");
-      Serial.println(humidity);
-
-      Serial.print("Temperature:");
-      Serial.println(temperature);
+      error = "";
     }
   }
 
-  delay(20000);
+  if (DEBUG){
+    debugOutput();
+  }
+
+  delay(REFRESH_DELAY);
+}
+
+void debugOutput(){
+  Serial.println(error);
+  Serial.print("Humidity:");
+  Serial.println(humidity);
+  Serial.print("Temperature:");
+  Serial.println(temperature);
 }
 
 int humidityAndTemperature(int bits[], int *temp, int *humidity){
